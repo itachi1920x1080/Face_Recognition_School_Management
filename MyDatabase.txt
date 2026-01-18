@@ -1,0 +1,220 @@
+-- Drop the database if it exists to ensure a clean start (useful for development)
+DROP DATABASE IF EXISTS records;
+
+-- Create the database if it doesn't exist
+CREATE DATABASE IF NOT EXISTS records CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Use the records database
+USE records;
+
+-- Create the department table
+CREATE TABLE IF NOT EXISTS department (
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Create the subject table
+CREATE TABLE IF NOT EXISTS subject (
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    code VARCHAR(20),
+    description TEXT
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Create the major table
+CREATE TABLE IF NOT EXISTS major (
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    department_id INT NOT NULL,
+    UNIQUE KEY uq_major_name (name),
+    CONSTRAINT fk_major_department FOREIGN KEY (department_id)
+        REFERENCES department(id) ON DELETE CASCADE ON UPDATE CASCADE
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+
+-- Create the class table
+CREATE TABLE IF NOT EXISTS class (
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Create the academic_year table
+CREATE TABLE IF NOT EXISTS academic_year (
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Create the mystudent table
+CREATE TABLE IF NOT EXISTS mystudent (
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100),
+    sex VARCHAR(10),
+    score FLOAT,
+    email VARCHAR(100),
+    phone VARCHAR(20),
+    photo LONGBLOB,
+    department_id INT NULL,
+    major_id INT NULL,
+    class_id INT NULL,
+    academic_year_id INT NULL,
+    CONSTRAINT fk_student_department FOREIGN KEY (department_id)
+        REFERENCES department(id) ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT fk_student_major FOREIGN KEY (major_id)
+        REFERENCES major(id) ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT fk_student_class FOREIGN KEY (class_id)
+        REFERENCES class(id) ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT fk_student_academic_year FOREIGN KEY (academic_year_id)
+        REFERENCES academic_year(id) ON DELETE SET NULL ON UPDATE CASCADE
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Create the class_schedule table (FIXED)
+CREATE TABLE IF NOT EXISTS class_schedule (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    class_id INT NOT NULL,
+    subject_id INT NOT NULL,
+    day_of_week ENUM('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday') NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    academic_year_id INT NULL,
+    CONSTRAINT fk_class_schedule_class FOREIGN KEY (class_id)
+        REFERENCES class(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_class_schedule_subject FOREIGN KEY (subject_id)
+        REFERENCES subject(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_class_schedule_academic_year FOREIGN KEY (academic_year_id)
+        REFERENCES academic_year(id) ON DELETE SET NULL ON UPDATE CASCADE,
+    UNIQUE KEY uq_schedule (class_id, day_of_week, start_time, academic_year_id)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Corrected attendance table with day_of_week column
+CREATE TABLE IF NOT EXISTS attendance (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    subject_id INT NOT NULL,
+    attendance_date DATE NOT NULL,
+    day_of_week ENUM('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday') NOT NULL,
+    status ENUM('Absent', 'Present', 'Late', 'Excused') NOT NULL,
+    notes TEXT,
+    CONSTRAINT fk_attendance_student FOREIGN KEY (student_id)
+        REFERENCES mystudent(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_attendance_subject FOREIGN KEY (subject_id)
+        REFERENCES subject(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE KEY uq_attendance (student_id, subject_id, attendance_date)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Create the absence table
+CREATE TABLE IF NOT EXISTS absence (
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    date DATE NOT NULL,
+    reason VARCHAR(255),
+    CONSTRAINT fk_absence_student FOREIGN KEY (student_id)
+        REFERENCES mystudent(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE KEY uq_absence (student_id, date)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+
+-- Data Insertion
+USE records;
+
+-- Insert example departments
+INSERT IGNORE INTO department (name) VALUES
+('Computer Science'),
+('Information Technology'),
+('Electrical Engineering'),
+('Business Administration');
+
+-- Insert example subjects
+INSERT IGNORE INTO subject (name, code, description) VALUES
+('Mathematics', 'MATH101', 'Basic mathematics'),
+('Programming', 'CS102', 'Introduction to programming'),
+('Networking', 'CS203', 'Computer networks'),
+('Database', 'CS204', 'Relational databases'),
+('Computer Applications', 'CA101', 'Introduction to computer applications');
+
+-- Insert example classes
+INSERT IGNORE INTO class (name) VALUES
+('M1'), ('M2'), ('M3'), ('M4'), ('M5'), ('M6'), ('M7'),
+('L1'), ('L2'), ('L3'), ('L4'), ('L5'), ('L6'), ('L7'),
+('S1'), ('S2');
+
+-- Insert example academic years
+INSERT IGNORE INTO academic_year (name) VALUES
+('2023-2024'),
+('2024-2025'),
+('2025-2026');
+
+-- Insert example majors
+INSERT IGNORE INTO major (name, department_id) VALUES
+('Software Engineering', (SELECT id FROM department WHERE name = 'Computer Science')),
+('Artificial Intelligence', (SELECT id FROM department WHERE name = 'Computer Science')),
+('Cybersecurity', (SELECT id FROM department WHERE name = 'Computer Science')),
+('Business Analytics', (SELECT id FROM department WHERE name = 'Business Administration'));
+
+-- Insert example class schedules
+INSERT IGNORE INTO class_schedule (class_id, subject_id, day_of_week, start_time, end_time, academic_year_id) VALUES
+(
+    (SELECT id FROM class WHERE name = 'M1'),
+    (SELECT id FROM subject WHERE name = 'Programming'),
+    'Monday',
+    '09:00:00',
+    '10:30:00',
+    (SELECT id FROM academic_year WHERE name = '2024-2025')
+);
+
+INSERT IGNORE INTO class_schedule (class_id, subject_id, day_of_week, start_time, end_time, academic_year_id) VALUES
+(
+    (SELECT id FROM class WHERE name = 'M2'),
+    (SELECT id FROM subject WHERE name = 'Database'),
+    'Tuesday',
+    '10:00:00',
+    '11:30:00',
+    (SELECT id FROM academic_year WHERE name = '2024-2025')
+);
+
+INSERT IGNORE INTO class_schedule (class_id, subject_id, day_of_week, start_time, end_time, academic_year_id) VALUES
+(
+    (SELECT id FROM class WHERE name = 'L3'),
+    (SELECT id FROM subject WHERE name = 'Mathematics'),
+    'Wednesday',
+    '13:00:00',
+    '14:00:00',
+    (SELECT id FROM academic_year WHERE name = '2023-2024')
+);
+
+INSERT IGNORE INTO class_schedule (class_id, subject_id, day_of_week, start_time, end_time, academic_year_id) VALUES
+(
+    (SELECT id FROM class WHERE name = 'S1'),
+    (SELECT id FROM subject WHERE name = 'Networking'),
+    'Thursday',
+    '15:00:00',
+    '16:30:00',
+    (SELECT id FROM academic_year WHERE name = '2025-2026')
+);
+
+INSERT IGNORE INTO class_schedule (class_id, subject_id, day_of_week, start_time, end_time, academic_year_id) VALUES
+(
+    (SELECT id FROM class WHERE name = 'M5'),
+    (SELECT id FROM subject WHERE name = 'Computer Applications'),
+    'Thursday',
+    '07:00:00',
+    '09:00:00',
+    (SELECT id FROM academic_year WHERE name = '2024-2025')
+);
+
+-- Insert example students
+INSERT IGNORE INTO mystudent (name, sex, score, email, phone, department_id, major_id, class_id, academic_year_id) VALUES
+('Alice Smith', 'Female', 85.5, 'alice.s@example.com', '123-456-7890',
+ (SELECT id FROM department WHERE name = 'Computer Science'),
+ (SELECT id FROM major WHERE name = 'Software Engineering'),
+ (SELECT id FROM class WHERE name = 'M1'),
+ (SELECT id FROM academic_year WHERE name = '2024-2025')),
+('Bob Johnson', 'Male', 72.0, 'bob.j@example.com', '098-765-4321',
+ (SELECT id FROM department WHERE name = 'Computer Science'),
+ (SELECT id FROM major WHERE name = 'Artificial Intelligence'),
+ (SELECT id FROM class WHERE name = 'M2'),
+ (SELECT id FROM academic_year WHERE name = '2024-2025')),
+('Charlie Brown', 'Male', 91.2, 'charlie.b@example.com', '111-222-3333',
+ (SELECT id FROM department WHERE name = 'Business Administration'),
+ (SELECT id FROM major WHERE name = 'Business Analytics'),
+ (SELECT id FROM class WHERE name = 'L3'),
+ (SELECT id FROM academic_year WHERE name = '2023-2024'));
