@@ -1,8 +1,8 @@
 # Face_Recognition_School_Management
 ### ប្រព័ន្ធគ្រប់គ្រងសិស្ស ជាមួយនឹងការស្កេនមុខ (STUDENT MANAGEMENT SYSTEM WITH FACE RECOGNITION)
 
-![Student Management System Screenshot 1](screenshot1.png)
-![Student Management System Screenshot 2](screenshot2.png)
+![Student Management System Screenshot 1](image/screenshot1.png)
+![Student Management System Screenshot 2](image/screenshot2.png)
 
 ## ទិដ្ឋភាពទូទៅនៃគម្រោង (Project Overview)
 នេះគឺជាប្រព័ន្ធគ្រប់គ្រងសិស្ស (SMS) ដ៏ទូលំទូលាយមួយ ដែលភ្ជាប់មកជាមួយនូវប្រព័ន្ធសម្គាល់មុខ (Face Recognition) សម្រាប់កត់ត្រាវត្ដមាន។ វាអនុញ្ញាតឱ្យអ្នកគ្រប់គ្រងសិស្ស, ដេប៉ាតឺម៉ង់, ជំនាញ, ថ្នាក់រៀន, ឆ្នាំសិក្សា, មុខវិជ្ជា, កាលវិភាគ និងកំណត់ត្រាវត្តមាន។ ប្រព័ន្ធនេះត្រូវបានបង្កើតឡើងដោយប្រើប្រាស់ GUI ទំនើបរបស់ **Tkinter**, ប្រព័ន្ធទិន្នន័យ **MySQL**, ការនាំចូល/នាំចេញឯកសារ **Excel**, និងការថតរូបភាពតាមរយៈ Webcam។
@@ -74,4 +74,4 @@ python main_app.py
 
 សម្រាប់សំណួរ ឬបញ្ហានានា សូមទាក់ទងអ្នកថែទាំគម្រោង (Project Maintainer)។
 
-តើអ្នកត្រូវការជំនួយក្នុងការបង្កើតឯកសារដំឡើង (Setup Guide) បន្ថែមទៀតទេ?
+តើអ្នកត្រូវការជំនួយក្នុងការបង្កើតឯកសារដំឡើង (Setup Guide) បន្ថែមទៀតទេ?
